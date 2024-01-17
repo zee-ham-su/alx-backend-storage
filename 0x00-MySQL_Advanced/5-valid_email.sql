@@ -2,16 +2,14 @@
 -- when the email has been changed.
 
 
-DELIMITER //
+DELIMITER $$;
 
-CREATE TRIGGER validate
-BEFORE UPDATE ON users
-FOR EACH ROW
+CREATE TRIGGER VALIDATE BEFORE
+    UPDATE ON USERS FOR EACH ROW
 BEGIN
-    IF NEW.email != OLD.email THEN
-        SET NEW.valid_email = NULL;
+    IF NEW.EMAIL != OLD.EMAIL THEN
+        SET NEW.VALID_EMAIL = 0;
     END IF;
 END;
 
-//
-DELIMITER;
+$$ DELIMITER;
