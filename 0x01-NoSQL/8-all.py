@@ -10,10 +10,5 @@ def list_all(mongo_collection):
     """
     if mongo_collection is None:
         return []
-    
-    documents = list(mongo_collection.find())
-    
-    for doc in documents:
-        print(f"[{doc['_id']}] {doc['name']}")
 
-    return documents
+    return list(mongo_collection.find())
