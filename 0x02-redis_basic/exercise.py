@@ -41,6 +41,36 @@ def call_history(method: Callable) -> Callable:
     return wrapper
 
 
+def replay(fn: Callable):
+    """Display the history of calls of a particular function."""
+    function_name = fn.__qualname__
+    call_count = redis_instance.get(function_name)
+    redis_instance = redis.Redis()
+
+    try:
+        call_count = int(call_count.decode("utf-8"))
+    except Exception:
+        call_count = 0
+    
+    print("{} was called {} times:".format(function_name, call_count))
+    
+    inputs = redis_instance.lrange("{}:inputs".format(function_name), 0, -1)
+    outputs = redis_instance.lrange("{}:outputs".format(function_name), 0, -1)
+    
+    for input_str, output_str in zip(inputs, outputs):
+        try:
+            input_str = input_str.decode("utf-8")
+        except Exception:
+            input_str = ""
+        
+        try:
+            output_str = output_str.decode("utf-8")
+        except Exception:
+            output_str = ""
+        
+        print("{}(*{}) -> {}".format(function_name, input_str, output_str))
+
+
 class Cache:
     """ cache class tht uses Redis for storing data
     """
@@ -80,16 +110,3 @@ class Cache:
         """ Fetches integer data from Redis using the given key.
         """
         return self.get(key, fn=int)
-
-
-def replay(self, method: Callable) -> None:
-    inputs_key = f"{method.__qualname__}:inputs"
-    outputs_key = f"{method.__qualname__}:outputs"
-
-    inputs = self._redis.lrange(inputs_key, 0, -1)
-    outputs = self._redis.lrange(outputs_key, 0, -1)
-
-    print(f"{method.__qualname__} was called {len(inputs)} times:")
-    for input_str, output_str in zip(inputs, outputs):
-        input_args = eval(input_str)
-        print(f"{method.__qualname__}(*{input_args}) -> {output_str}")
