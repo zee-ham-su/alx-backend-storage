@@ -80,3 +80,16 @@ class Cache:
         """ Fetches integer data from Redis using the given key.
         """
         return self.get(key, fn=int)
+
+
+def replay(self, method: Callable) -> None:
+    inputs_key = f"{method.__qualname__}:inputs"
+    outputs_key = f"{method.__qualname__}:outputs"
+
+    inputs = self._redis.lrange(inputs_key, 0, -1)
+    outputs = self._redis.lrange(outputs_key, 0, -1)
+
+    print(f"{method.__qualname__} was called {len(inputs)} times:")
+    for input_str, output_str in zip(inputs, outputs):
+        input_args = eval(input_str)
+        print(f"{method.__qualname__}(*{input_args}) -> {output_str}")
