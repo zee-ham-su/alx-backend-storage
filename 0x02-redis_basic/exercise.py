@@ -51,23 +51,23 @@ def replay(fn: Callable):
         call_count = int(call_count.decode("utf-8"))
     except Exception:
         call_count = 0
-    
+
     print("{} was called {} times:".format(function_name, call_count))
-    
+
     inputs = redis_instance.lrange("{}:inputs".format(function_name), 0, -1)
     outputs = redis_instance.lrange("{}:outputs".format(function_name), 0, -1)
-    
+
     for input_str, output_str in zip(inputs, outputs):
         try:
             input_str = input_str.decode("utf-8")
         except Exception:
             input_str = ""
-        
+
         try:
             output_str = output_str.decode("utf-8")
         except Exception:
             output_str = ""
-        
+
         print("{}(*{}) -> {}".format(function_name, input_str, output_str))
 
 
