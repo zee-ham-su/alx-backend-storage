@@ -3,42 +3,33 @@
 """
 import requests
 import redis
-from functools import wraps, lru_cache
-from time import time
+from functools import wraps
 
 store = redis.Redis()
 
 
 def count_url_access(method):
-    """ Decorator counting how many times a URL is accessed """
+    """Decorator that keeps track of the number of
+    times a URL is accessed."""
     @wraps(method)
     def wrapper(url):
-        count_key = "count:" + url
-        store.incr(count_key)
-        return method(url)
+        cache_key = "cache:" + url
+        cached_content = store.get(cache_key)
+        if cached_content:
+            return cached_content.decode("utf-8")
+
+        access_count_key = "access_count:" + url
+        html_content = method(url)
+
+        store.incr(access_count_key)
+        store.set(cache_key, html_content)
+        store.expire(cache_key, 10)
+        return html_content
     return wrapper
 
 
-def timed_lru_cache(maxsize, timeout):
-    """ LRU Cache decorator with timeout """
-    def decorator(method):
-        cached_method = lru_cache(maxsize)(method)
-
-        @wraps(method)
-        def wrapper(url):
-            cache_key = (url,)
-            result = cached_method(url)
-            store.setex(cache_key, timeout, result)
-            return result
-
-        return wrapper
-
-    return decorator
-
-
 @count_url_access
-@timed_lru_cache(maxsize=None, timeout=10)
 def get_page(url: str) -> str:
-    """ Returns HTML content of a url """
-    res = requests.get(url)
-    return res.text
+    """Fetches the HTML content of a given URL."""
+    response = requests.get(url)
+    return response.text
