@@ -43,9 +43,11 @@ def call_history(method: Callable) -> Callable:
 
 def replay(fn: Callable):
     """Show the record of calls for a specific function"""
+    redis_instance = redis.Redis()
+    
     function_name = fn.__qualname__
     call_count = redis_instance.get(function_name)
-    redis_instance = redis.Redis()
+    
 
     try:
         call_count = int(call_count.decode("utf-8"))
