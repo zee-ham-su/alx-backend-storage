@@ -47,7 +47,7 @@ def replay(fn: Callable):
 
     function_name = fn.__qualname__
     call_count = redis_instance.get(function_name)
-    
+
     try:
         call_count = int(call_count.decode("utf-8"))
     except Exception:
